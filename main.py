@@ -35,7 +35,7 @@ class QuizRequest(BaseModel):
     topic: str
     num_questions: int
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def home():
     return {"status": "Pocket-Py Backend Running Successfully!"}
 
