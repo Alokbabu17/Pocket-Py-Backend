@@ -11,9 +11,8 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY missing in environment variables.")
+    print("WARNING: GEMINI_API_KEY is not set in environment!")
 
-# Gemini Client Init
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 app = FastAPI(title="Pocket-Py API")
@@ -26,7 +25,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Request Models
 class ChatRequest(BaseModel):
     prompt: str
     history: list = []
@@ -39,7 +37,7 @@ class QuizRequest(BaseModel):
 def home():
     return {"status": "Pocket-Py Backend Running Successfully!"}
 
-# 1. DOUBT SOLVER CHAT ENDPOINT
+# 1. CHAT ENDPOINT
 @app.post("/api/chat")
 def chat_with_py_teacher(req: ChatRequest):
     try:
@@ -50,14 +48,13 @@ def chat_with_py_teacher(req: ChatRequest):
             "Keep answers concise, intuitive, code-rich, and easy to grasp. Provide clear syntax and best practices."
         )
 
-        # Context build-up
         contents = []
         for item in req.history:
             contents.append(item)
         contents.append(req.prompt)
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash",
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
@@ -66,9 +63,10 @@ def chat_with_py_teacher(req: ChatRequest):
         )
         return {"response": response.text}
     except Exception as e:
+        print(f"Chat Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# 2. DYNAMIC QUIZ GENERATOR ENDPOINT
+# 2. QUIZ ENDPOINT
 @app.post("/api/quiz")
 def generate_quiz(req: QuizRequest):
     try:
@@ -85,11 +83,11 @@ def generate_quiz(req: QuizRequest):
             "explanation": "Short 1-line reason why this is correct"
           }}
         ]
-        Do not wrap with markdown code fences (no ```json). Output raw JSON array only.
+        Do not wrap with markdown code fences. Output raw JSON array only.
         """
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -99,4 +97,5 @@ def generate_quiz(req: QuizRequest):
         data = json.loads(response.text)
         return {"questions": data}
     except Exception as e:
+        print(f"Quiz Generation Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
