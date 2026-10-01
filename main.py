@@ -37,7 +37,7 @@ class QuizRequest(BaseModel):
 def home():
     return {"status": "Pocket-Py Backend Running Successfully!"}
 
-# 1. CHAT ENDPOINT
+# 1. DOUBT SOLVER CHAT
 @app.post("/api/chat")
 def chat_with_py_teacher(req: ChatRequest):
     try:
@@ -54,7 +54,7 @@ def chat_with_py_teacher(req: ChatRequest):
         contents.append(req.prompt)
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-3.8-flash",
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
@@ -66,7 +66,7 @@ def chat_with_py_teacher(req: ChatRequest):
         print(f"Chat Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# 2. QUIZ ENDPOINT
+# 2. DYNAMIC QUIZ GENERATOR
 @app.post("/api/quiz")
 def generate_quiz(req: QuizRequest):
     try:
@@ -87,7 +87,7 @@ def generate_quiz(req: QuizRequest):
         """
 
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-3.8-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
